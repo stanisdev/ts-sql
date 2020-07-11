@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+storage/*
+!storage/.gitkeep
+package-lock.json

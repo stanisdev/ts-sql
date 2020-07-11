@@ -1,0 +1,28 @@
+{
+  "name": "js-sql",
+  "version": "0.0.1",
+  "description": "JS-SQL is a relational database completely implemented on JavaScript",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stanisdev/js-sql.git"
+  },
+  "keywords": [
+    "sql",
+    "javascript",
+    "database",
+    "custom"
+  ],
+  "author": "Stanislav Zavalishin <javascript.nodejs.developer@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stanisdev/js-sql/issues"
+  },
+  "homepage": "https://github.com/stanisdev/js-sql#readme",
+  "dependencies": {
+    "commander": "5.1.0"
+  }
+}
