@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/stanisdev/js-sql#readme",
   "dependencies": {
-    "commander": "5.1.0"
+    "commander": "5.1.0",
+    "nanoid": "3.1.10"
   }
 }
