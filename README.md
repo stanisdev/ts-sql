@@ -1,2 +1,2 @@
 # js-sql
-JS-SQL is a relational database completely implemented on JavaScript
+JS-SQL is a relational database which completely implemented on JavaScript
