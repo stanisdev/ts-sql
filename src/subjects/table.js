@@ -1,10 +1,13 @@
 'use strict';
 
 import { General } from '../general.js';
-import { validators } from '../common/validators.js';
+import { FieldValidator } from '../common/validators.js';
+import { FileSystem } from '../common/fileSystem.js';
+import { Utils } from '../common/utils.js';
 
 export class Table extends General {
     #fields = [];
+    #name;
     #command
 
     constructor(params) {
@@ -24,13 +27,13 @@ export class Table extends General {
         if (tableName.length < 3) {
             throw new Error(`The table name is specified incorrectly`);
         }
-        let { symbols, modifiedString } = this.getEdgeSymbols(tableName);
+        let { symbols, modifiedString } = Utils.getEdgeSymbols(tableName);
         if (symbols.first !== '"' || symbols.last !== '"') {
             throw new Error('You should use double quotes to specify the name of a table');
         }
-        tableName = modifiedString;
+        this.#name = modifiedString;
 
-        let data = this.getEdgeSymbols(this.query);
+        let data = Utils.getEdgeSymbols(this.query);
         if (data.symbols.first !== '(' || data.symbols.last !== ')') {
             throw new Error('You should wrap the fields of a table in brackets');
         }
@@ -64,53 +67,29 @@ export class Table extends General {
                 options,
             });
         }
-        this.#validateFields();
+        const fieldValidator = new FieldValidator(this.#fields);
+        fieldValidator.execute();
+        this.#stringifyFields(
+            fieldValidator.getCompactedFields()
+        );
     }
 
-    #validateFields() {
-        const fields = this.#fields;
-        const compactedFieds = [];
-
-        if (fields.length < 1) {
-            throw new Error('No any fields to define a table');
-        }
+    #stringifyFields(fields) {
+        let result = `${this.#name}|`;
         for (let a = 0; a < fields.length; a++) {
             const field = fields[a];
-            const validator = validators.table.field;
-
-            if (!validator.name.characters.test(field.name)) {
-                throw new Error(`The name of the field '${field.name}' is incorrect`);
-            }
-            if (validator.name.size.min > field.name.length) {
-                throw new Error(`The name of the field '${field.name}' is too short`);
-            }
-            if (validator.name.size.max < field.name.length) {
-                throw new Error(`The name of the field '${field.name}' is too long`);
-            }
-            if (field.options.length < 1) {
-                throw new Error(`The field '${field.name}' has no options`);
-            }
-            let [dataType, ...otherOptions] = field.options;
-            if (dataType.includes('(')) {
-                const from = dataType.indexOf('(');
-                const maxSize = +dataType.slice(from + 1, -1);
-                
-                if (Number.isNaN(maxSize)) {
-                    throw new Error(`The max size parameter for the field ` +
-                        `'${field.name}' is specified incorrectly`);
-                }
-                dataType = dataType.slice(0, from);
-            }
-            if (!validators.dataTypes.hasOwnProperty(dataType)) {
-                throw new Error(`The data type '${dataType}' is incorrect`);
-            }
+            result += `${field.name}[${field.type}](`;
             
-            compactedFieds.push({
-                name: field.name,
-                type: dataType,
-                options: [],
-            });
+            const { options } = field;
+            for (let b = 0; b < options.length; b++) {
+                const option = options[b];
+                const [[key, value]] = Object.entries(option);
+                result += `${key}:${value},`; // @todo: check if value if an object
+            }
+            result = result.slice(0, -1);
+
+            result += ') | ';
         }
-        console.log(compactedFieds);
+        result = result.slice(0, -1);
     }
 }
