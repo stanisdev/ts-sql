@@ -1,6 +1,4 @@
-'use strict';
-
-import { QueryParser } from './queryParser.js';
+import { QueryParser } from './queryParser';
 
 const query = `
     CREATE TABLE "Books" (

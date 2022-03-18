@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2017",
+        "outDir": "./dist",
+        "baseUrl": "./",
+        "removeComments": true,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "skipLibCheck": true,
+        "noFallthroughCasesInSwitch": false
+    }
+}
