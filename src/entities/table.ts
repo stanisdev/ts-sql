@@ -2,6 +2,8 @@ import { General } from '../general';
 import { Utils } from '../common/utils';
 import { FieldValidator } from '../common/validators';
 import { InitialField, CompactedField } from '../common/types';
+import { QueryParams } from '../common/types';
+import { FileSystem } from '../common/fileSystem';
 
 export class TableEntity extends General {
     private name: string;
@@ -10,9 +12,9 @@ export class TableEntity extends General {
      * Constructor of the class
      */
     constructor(
-        protected query: string,
+        protected query: QueryParams,
         private params: {
-            command: string
+            command: string, // @todo: move to a enum
         },
     ) {
         super();
@@ -22,7 +24,7 @@ export class TableEntity extends General {
      * Start processing the given command and
      * the remaining query
      */
-    execute(): void {
+    parse(): void {
         const command = this.params.command as 'create';
         if (typeof this[command] != 'function') {
             throw new Error(`The command '${command}' for a table cannot be applied`);
@@ -31,7 +33,18 @@ export class TableEntity extends General {
     }
 
     /**
-     * Process the command to create a new table
+     * Describe me
+     */
+    async execute(): Promise<void> {
+        if (this.params.command == 'create') { // @todo: fix this
+            const fs = new FileSystem();
+            await fs.open('tables'); // @todo: move to the config
+            await fs.write('\n' + this.query.metaData);
+        }
+    }
+
+    /**
+     * Parse the command to create a new table
      */
     private create(): void {
         let tableName = this.retrieveNearestPhrase();
@@ -44,11 +57,11 @@ export class TableEntity extends General {
         }
         this.name = modifiedString;
 
-        let data = Utils.getEdgeSymbols(this.query);
+        let data = Utils.getEdgeSymbols(this.query.initialValue);
         if (data.symbols.first !== '(' || data.symbols.last !== ')') {
             throw new Error('You should wrap the fields of a table in brackets');
         }
-        this.query = data.modifiedString;
+        this.query.initialValue = data.modifiedString;
         this.parseFields();
     }
 
@@ -71,7 +84,7 @@ export class TableEntity extends General {
                     toLowerCase: true,
                 });
                 if (fieldOption.length < 1) {
-                    options.push(this.query);
+                    options.push(this.query.initialValue);
                     break;
                 }
                 if (fieldOption.slice(-1) == ',') {
@@ -119,6 +132,6 @@ export class TableEntity extends General {
             result = result.slice(0, -1);
             result += ')|';
         }
-        result = result.slice(0, -1);
+        this.query.metaData = result.slice(0, -1);
     }
 }

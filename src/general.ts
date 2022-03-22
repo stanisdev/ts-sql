@@ -1,15 +1,20 @@
+import { QueryParams } from './common/types';
+
 export class General {
-    protected query: string;
+    protected query: QueryParams;
 
+    /**
+     * Extract the nearest phrase from the query
+     */
     protected retrieveNearestPhrase(options?: { toLowerCase: boolean }): string {
-        const { query } = this;
+        const { initialValue } = this.query;
 
-        const spaceIndex = query.indexOf(' ');
+        const spaceIndex = initialValue.indexOf(' ');
         if (spaceIndex < 0) {
             return '';
         }
-        let phrase = query.substring(0, spaceIndex);
-        this.query = query.substring(spaceIndex + 1);
+        let phrase = initialValue.substring(0, spaceIndex);
+        this.query.initialValue = initialValue.substring(spaceIndex + 1);
 
         if (options?.toLowerCase) {
             phrase = phrase.toLowerCase();

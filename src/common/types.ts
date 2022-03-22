@@ -29,3 +29,10 @@ export type CompactedField = {
     type: string,
     options: FieldDetailedOptions[],
 };
+
+export type QueryParams = {
+    initialValue: string,
+    metaData: string,
+};
+
+export type Config = any;

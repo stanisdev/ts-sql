@@ -1,25 +1,26 @@
 import { General } from './general';
 import { CreateCommand } from './commands/create';
+import { InsertCommand } from './commands/insert';
+import { QueryParams } from './common/types';
 
 export class QueryParser extends General {
     private commmands = {
         create: CreateCommand,
-        insert: class {
-            execute() {}
-        },
+        insert: InsertCommand,
     };
+    private commandClassInstance: CreateCommand | InsertCommand;
 
     /**
      * Constructor of the class
      */
-    constructor(protected query: string) {
+    constructor(protected query: QueryParams) {
         super();
     }
 
     /**
-     * Parsing the query
+     * Analyze and parse the query
      */
-    parse(): void {
+    analyze(): void {
         this.compactQuery();
         const command = this.retrieveNearestPhrase({
             toLowerCase: true,
@@ -28,14 +29,22 @@ export class QueryParser extends General {
             throw new Error(`The command '${command}' is not available`);
         }
         const CommandClass = this.commmands[command as 'create' | 'insert'];
-        new CommandClass(this.query).execute();
+        this.commandClassInstance = new CommandClass(this.query);
+        this.commandClassInstance.parse();
+    }
+
+    /**
+     * Describe me
+     */
+    async execute(): Promise<void> {
+        await this.commandClassInstance.execute();
     }
 
     /**
      * Remove excessive spaces as well as similar symbols
      */
     private compactQuery(): void {
-        this.query = this.query
+        this.query.initialValue = this.query.initialValue
             .replace(/\n\t\r/g, '')
             .replace(/\s{2,}/g, ' ')
             .trim();
