@@ -38,6 +38,9 @@ export type QueryParams = {
 export type Config = {
 	storage: {
 		folderName: string;
+		files: {
+			[key: string]: string;
+		};
 	};
 	dirs: {
 		root: string;

@@ -39,7 +39,9 @@ export class FileSystem {
 			crlfDelay: Infinity,
 		});
 		reader.on('line', (line: string) => {
-			this.reading.lines.push(line);
+			if (line.length > 0) {
+				this.reading.lines.push(line);
+			}
 		});
 		await once(reader, 'close');
 	}
@@ -55,9 +57,16 @@ export class FileSystem {
 	/**
 	 * Write the data to the opened file
 	 */
-	async write(data: string): Promise<void> {
+	async write(data: string, position: number) {
+		this.fileHandle.write(data, position);
+	}
+
+	/**
+	 * Write data to the end of the opened file
+	 */
+	async append(data: string): Promise<void> {
 		const stat = await this.fileHandle.stat();
-		this.fileHandle.write(data, stat.size);
+		this.fileHandle.write('\n' + data, stat.size);
 	}
 
 	/**

@@ -2,19 +2,20 @@ import { General } from '../general';
 import { Utils } from '../common/utils';
 import { FieldValidator } from '../common/validators';
 import { InitialField, CompactedField } from '../common/types';
-import { QueryParams } from '../common/types';
+import { QueryParams, Config } from '../common/types';
 import { FileSystem } from '../common/fileSystem';
+import { TableCommand } from '../common/enums';
+import { AnalyzeUnit } from '../common/interfaces';
+import { Main } from '../main';
 
-export class TableEntity extends General {
-	private name: string;
-
+export class TableEntity extends General implements AnalyzeUnit {
 	/**
 	 * Constructor of the class
 	 */
 	constructor(
 		protected query: QueryParams,
 		private params: {
-			command: string; // @todo: move to a enum
+			command: TableCommand;
 		},
 	) {
 		super();
@@ -25,26 +26,32 @@ export class TableEntity extends General {
 	 * the remaining query
 	 */
 	async parse(): Promise<void> {
-		const command = this.params.command as 'create';
-		if (typeof this[command] != 'function') {
-			throw new Error(
-				`The command '${command}' for a table cannot be applied`,
-			);
-		}
-		this[command]();
+		const parses = new Parser(this.query);
+		await parses[this.params.command]();
 	}
 
 	/**
 	 * Execute the previously analyzed command
 	 */
 	async execute(): Promise<void> {
-		if (this.params.command == 'create') {
-			// @todo: fix this
-			const fs = new FileSystem();
-			await fs.open('tables'); // @todo: move to the config
-			await fs.write('\n' + this.query.metaData);
-			await fs.close();
-		}
+		const executor = new Executor(this.query);
+		await executor[this.params.command]();
+	}
+}
+
+/**
+ * The class to parse the initial query
+ */
+class Parser extends General {
+	private name: string;
+	private config: Config;
+
+	/**
+	 * Constructor of the class
+	 */
+	constructor(protected query: QueryParams) {
+		super();
+		this.config = Main.getInstance().getConfig();
 	}
 
 	/**
@@ -81,7 +88,7 @@ export class TableEntity extends General {
 	 */
 	async doesTableExist(): Promise<boolean> {
 		const fs = new FileSystem();
-		await fs.readFileByLines('tables');
+		await fs.readFileByLines(this.config.storage.files.tables);
 
 		for (const line of fs.getLines()) {
 			const tableName = line.substring(0, line.indexOf('|'));
@@ -133,7 +140,7 @@ export class TableEntity extends General {
 	/**
 	 * Compile the prepared list of fields to a string
 	 */
-	private stringifyFields(fields: CompactedField[]) {
+	private stringifyFields(fields: CompactedField[]): void {
 		let result = `${this.name}|`;
 		for (const field of fields) {
 			result += `${field.name}[${field.type}](`;
@@ -157,5 +164,29 @@ export class TableEntity extends General {
 			result += ')|';
 		}
 		this.query.metaData = result.slice(0, -1);
+	}
+}
+
+/**
+ * The class to execute the having parsed query
+ */
+class Executor {
+	private config: Config;
+
+	/**
+	 * Constructor of the class
+	 */
+	constructor(protected query: QueryParams) {
+		this.config = Main.getInstance().getConfig();
+	}
+
+	/**
+	 * Execute the 'create' command
+	 */
+	async create(): Promise<void> {
+		const fs = new FileSystem();
+		await fs.open(this.config.storage.files.tables);
+		await fs.append(this.query.metaData);
+		await fs.close();
 	}
 }

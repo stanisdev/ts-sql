@@ -1,9 +1,12 @@
 import { General } from '../general';
 import { TableEntity } from '../entities/table';
 import { QueryParams } from '../common/types';
+import { TableCommand, CreateEntity } from '../common/enums';
+import { AnalyzeUnit } from '../common/interfaces';
 
-export class CreateCommand extends General {
+export class CreateCommand extends General implements AnalyzeUnit {
 	private entities = {
+		// @todo: add an interface to the type
 		table: TableEntity,
 	};
 	private entityInstance: TableEntity;
@@ -19,15 +22,16 @@ export class CreateCommand extends General {
 	 * Determine which entity to engage
 	 */
 	async parse(): Promise<void> {
-		const entityName = this.retrieveNearestPhrase({
-			toLowerCase: true,
+		const phrase = this.retrieveNearestPhrase({
+			capitalize: true,
 		});
-		if (!this.entities.hasOwnProperty(entityName)) {
-			throw new Error(`It is impossible to create '${entityName}'`);
+		const entityName: CreateEntity = (<any>CreateEntity)[phrase];
+		if (typeof entityName != 'string') {
+			throw new Error(`It is impossible to create '${phrase}'`);
 		}
-		const EntityClass = this.entities[entityName as 'table'];
+		const EntityClass = this.entities[entityName];
 		this.entityInstance = new EntityClass(this.query, {
-			command: 'create',
+			command: TableCommand.Create,
 		});
 		await this.entityInstance.parse();
 	}

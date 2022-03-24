@@ -1,4 +1,5 @@
 import { QueryParams } from './common/types';
+import { capitalize } from 'lodash';
 
 export class General {
 	protected query: QueryParams;
@@ -7,7 +8,8 @@ export class General {
 	 * Extract the nearest phrase from the query
 	 */
 	protected retrieveNearestPhrase(options?: {
-		toLowerCase: boolean;
+		toLowerCase?: boolean;
+		capitalize?: boolean;
 	}): string {
 		const { initialValue } = this.query;
 
@@ -20,6 +22,9 @@ export class General {
 
 		if (options?.toLowerCase) {
 			phrase = phrase.toLowerCase();
+		}
+		if (options?.capitalize) {
+			return capitalize(phrase);
 		}
 		return phrase;
 	}

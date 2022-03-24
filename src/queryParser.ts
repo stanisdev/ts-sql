@@ -1,6 +1,7 @@
 import { General } from './general';
 import { CreateCommand } from './commands/create';
 import { InsertCommand } from './commands/insert';
+import { PrimaryCommand } from './common/enums';
 import { QueryParams } from './common/types';
 
 export class QueryParser extends General {
@@ -22,13 +23,14 @@ export class QueryParser extends General {
 	 */
 	async analyze(): Promise<void> {
 		this.compactQuery();
-		const command = this.retrieveNearestPhrase({
-			toLowerCase: true,
+		const phrase = this.retrieveNearestPhrase({
+			capitalize: true,
 		});
-		if (!this.commmands.hasOwnProperty(command)) {
-			throw new Error(`The command '${command}' is not available`);
+		const command: PrimaryCommand = (<any>PrimaryCommand)[phrase];
+		if (typeof command != 'string') {
+			throw new Error(`The command '${phrase}' is not available`);
 		}
-		const CommandClass = this.commmands[command as 'create' | 'insert'];
+		const CommandClass = this.commmands[command];
 		this.commandClassInstance = new CommandClass(this.query);
 		await this.commandClassInstance.parse();
 	}

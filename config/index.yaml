@@ -1,3 +1,6 @@
 storage:
   folderName:
     storage
+  files:
+    tables:
+      tables
