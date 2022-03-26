@@ -1,4 +1,4 @@
 export interface AnalyzeUnit {
-	parse(): Promise<void>;
-	execute(): Promise<void>;
+    parse(): Promise<void>;
+    execute(): Promise<void>;
 }

@@ -1,12 +1,11 @@
 import { Main } from './main';
 
 const query = `
-    CREATE TABLE "Books" (
-        id INTEGER AUTO_INCREMENT,
-        title STRING(50) NOT NULL DEFAULT 'What?',
-        price INTEGER NOT NULL,
-        isAvailable BOOLEAN NOT NULL DEFAULT true
-    )
+    INSERT INTO "Books"
+        (title, price, isAvailable)
+    VALUES
+        ('Verity', 78, true),
+        ('Normal People', 100, false)
 `;
 
 Main.getInstance().runApp(query);

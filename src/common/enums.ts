@@ -1,12 +1,19 @@
 export enum TableCommand {
-	Create = 'create',
+    Create = 'create',
 }
 
 export enum CreateEntity {
-	Table = 'table',
+    Table = 'table',
 }
 
 export enum PrimaryCommand {
-	Create = 'create',
-	Insert = 'insert',
+    Create = 'create',
+    Insert = 'insert',
+}
+
+export enum TableFieldOption {
+    AutoIncrement = 'autoIncrement',
+    NotNull = 'notNull',
+    Default = 'default',
+    Size = 'size',
 }

@@ -5,41 +5,40 @@ import { TableCommand, CreateEntity } from '../common/enums';
 import { AnalyzeUnit } from '../common/interfaces';
 
 export class CreateCommand extends General implements AnalyzeUnit {
-	private entities = {
-		// @todo: add an interface to the type
-		table: TableEntity,
-	};
-	private entityInstance: TableEntity;
+    private entities = {
+        table: TableEntity,
+    };
+    private entityInstance: TableEntity;
 
-	/**
-	 * Constructor of the class
-	 */
-	constructor(protected query: QueryParams) {
-		super();
-	}
+    /**
+     * Constructor of the class
+     */
+    constructor(protected query: QueryParams) {
+        super();
+    }
 
-	/**
-	 * Determine which entity to engage
-	 */
-	async parse(): Promise<void> {
-		const phrase = this.retrieveNearestPhrase({
-			capitalize: true,
-		});
-		const entityName: CreateEntity = (<any>CreateEntity)[phrase];
-		if (typeof entityName != 'string') {
-			throw new Error(`It is impossible to create '${phrase}'`);
-		}
-		const EntityClass = this.entities[entityName];
-		this.entityInstance = new EntityClass(this.query, {
-			command: TableCommand.Create,
-		});
-		await this.entityInstance.parse();
-	}
+    /**
+     * Determine which entity to engage
+     */
+    async parse(): Promise<void> {
+        const phrase = this.retrieveNearestPhrase({
+            capitalize: true,
+        });
+        const entityName: CreateEntity = (<any>CreateEntity)[phrase];
+        if (typeof entityName != 'string') {
+            throw new Error(`It is impossible to create '${phrase}'`);
+        }
+        const EntityClass = this.entities[entityName];
+        this.entityInstance = new EntityClass(this.query, {
+            command: TableCommand.Create,
+        });
+        await this.entityInstance.parse();
+    }
 
-	/**
-	 * Execute the parsed command
-	 */
-	async execute(): Promise<void> {
-		await this.entityInstance.execute();
-	}
+    /**
+     * Execute the parsed command
+     */
+    async execute(): Promise<void> {
+        await this.entityInstance.execute();
+    }
 }
