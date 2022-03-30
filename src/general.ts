@@ -1,5 +1,6 @@
 import { QueryParams } from './common/types';
 import { capitalize } from 'lodash';
+import * as i18next from 'i18next';
 
 export class General {
     protected query: QueryParams;
@@ -39,9 +40,7 @@ export class General {
 
         const symbol = initialValue.slice(0, 1);
         if (symbol !== '(') {
-            throw new Error(
-                `The query from here '${initialValue}' uses braces incorrectly`,
-            );
+            throw new Error(i18next.t('no-proper-braces', { initialValue }));
         }
         this.query.initialValue = initialValue
             .slice(closingBracketIndex + 1)

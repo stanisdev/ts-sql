@@ -3,6 +3,7 @@ import { TableEntity } from '../entities/table';
 import { QueryParams } from '../common/types';
 import { TableCommand, CreateEntity } from '../common/enums';
 import { AnalyzeUnit } from '../common/interfaces';
+import * as i18next from 'i18next';
 
 export class CreateCommand extends General implements AnalyzeUnit {
     private entities = {
@@ -26,7 +27,7 @@ export class CreateCommand extends General implements AnalyzeUnit {
         });
         const entityName: CreateEntity = (<any>CreateEntity)[phrase];
         if (typeof entityName != 'string') {
-            throw new Error(`It is impossible to create '${phrase}'`);
+            throw new Error(i18next.t('unable-to-create', { phrase }));
         }
         const EntityClass = this.entities[entityName];
         this.entityInstance = new EntityClass(this.query, {

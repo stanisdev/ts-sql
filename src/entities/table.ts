@@ -9,6 +9,7 @@ import { TableCommand, TableFieldOption } from '../common/enums';
 import { QueryParams, Config, FieldDetailedOption } from '../common/types';
 import { TableFieldTransformer } from '../common/transformer';
 import { TableField, TableSchema as TableSchemaType } from '../common/types';
+import * as i18next from 'i18next';
 
 /**
  * The class is to serve queries related to tables as well as
@@ -49,13 +50,11 @@ export class TableEntity extends General implements AnalyzeUnit {
      */
     static getTableName(phrase: string): string {
         if (phrase.length < 3) {
-            throw new Error(`The table name is specified incorrectly`);
+            throw new Error(i18next.t('wrong-table-name'));
         }
         let { symbols, modifiedString } = Utils.getEdgeSymbols(phrase);
         if (symbols.first !== '"' || symbols.last !== '"') {
-            throw new Error(
-                'You should use double quotes to specify the name of a table',
-            );
+            throw new Error(i18next.t('no-double-quotes-around-table-name'));
         }
         return modifiedString;
     }
@@ -108,7 +107,7 @@ class TableSchema {
 
         const line = lines.find(line => line.startsWith(`${this.tableName}|`));
         if (typeof line != 'string') {
-            throw new Error(`Table '${this.tableName}' does not exist`);
+            throw new Error(i18next.t('no-table', { name: this.tableName }));
         }
         this.line = line;
     }
@@ -196,10 +195,10 @@ class TableSchema {
                     [optionName]: subOptions,
                 });
             } else if (chunk.includes(',')) {
-            /**
-             * If raw info about a field includes at
-             * least one more option
-             */
+                /**
+                 * If raw info about a field includes at
+                 * least one more option
+                 */
                 optionValue = chunk.slice(0, chunk.indexOf(','));
                 shift = optionValue.length + 1;
                 options.push({
@@ -260,14 +259,13 @@ class Parser extends General {
         this.name = TableEntity.getTableName(phrase);
 
         if (await this.doesTableExist()) {
-            throw new Error(`The table '${this.name}' is already exist`);
+            throw new Error(
+                i18next.t('table-already-exist', { name: this.name }),
+            );
         }
-
         let data = Utils.getEdgeSymbols(this.query.initialValue);
         if (data.symbols.first !== '(' || data.symbols.last !== ')') {
-            throw new Error(
-                'You should wrap the fields of a table in brackets',
-            );
+            throw new Error(i18next.t('no-brackets-around-table-fields'));
         }
         this.query.initialValue = data.modifiedString;
         this.parseFields();

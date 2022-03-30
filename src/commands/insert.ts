@@ -2,6 +2,7 @@ import { General } from '../general';
 import { QueryParams } from '../common/types';
 import { AnalyzeUnit } from '../common/interfaces';
 import { TableEntity } from '../entities/table';
+import * as i18next from 'i18next';
 
 export class InsertCommand extends General implements AnalyzeUnit {
     private tableName: string;
@@ -28,7 +29,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
             toLowerCase: true,
         });
         if (phrase !== 'into') {
-            throw new Error('The insert query is specified incorrectly');
+            throw new Error(i18next.t('wrong-insert-query'));
         }
         this.tableName = TableEntity.getTableName(this.retrieveNearestPhrase());
         this.initial.fields = this.extractParenthesizedSubstring();
@@ -36,8 +37,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
             toLowerCase: true,
         });
         if (phrase !== 'values') {
-            // @todo: fix message duplication
-            throw new Error('The insert query is specified incorrectly');
+            throw new Error(i18next.t('wrong-insert-query'));
         }
         while (true) {
             const substring = this.extractParenthesizedSubstring();

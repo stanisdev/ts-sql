@@ -1,3 +1,4 @@
+import * as i18next from 'i18next';
 import { Utils } from './utils';
 import {
     FieldDetailedOption,
@@ -45,7 +46,7 @@ const validators = {
                 const { symbols, modifiedString } = Utils.getEdgeSymbols(value);
                 if (symbols.first != "'" || symbols.last != "'") {
                     throw new Error(
-                        'You should wrap the default value of a string to single quotes',
+                        i18next.t('no-single-quotes-around-default-value'),
                     );
                 }
                 return {
@@ -81,9 +82,7 @@ const validators = {
         not(params: DataTypeOptionsParams) {
             const nextValue = params.fieldOptions.shift();
             if (nextValue !== 'null') {
-                throw new Error(
-                    `You specified the 'NOT NULL' option incorrectly`,
-                );
+                throw new Error(i18next.t('wrong-not-null-option'));
             }
             params.finalOptions.push({
                 notNull: true,
@@ -94,21 +93,21 @@ const validators = {
          */
         default(params: DataTypeOptionsParams) {
             const value = params.fieldOptions.shift();
+            const { dataType } = params;
             try {
                 if (typeof value != 'string') {
-                    throw new Error('Prevent runtime');
+                    throw new Error(i18next.t('crucial-error'));
                 }
                 const result =
                     validators.dataTypes[
-                        params.dataType as 'string' | 'integer' | 'boolean'
+                        dataType as 'string' | 'integer' | 'boolean'
                     ].default(value);
                 if (!result.isValid) {
-                    throw new Error('Prevent runtime');
+                    throw new Error(i18next.t('crucial-error'));
                 }
             } catch {
                 throw new Error(
-                    `The default value '${value}' for the ` +
-                        `'${params.dataType}' data type is incorrect`,
+                    i18next.t('wrong-default-value', { value, dataType }),
                 );
             }
             params.finalOptions.push({
@@ -140,7 +139,7 @@ export class FieldValidator {
     execute(): void | never {
         const fields = this.fields.initial;
         if (fields.length < 1) {
-            throw new Error('No any fields to define a table');
+            throw new Error(i18next.t('no-fields'));
         }
         /**
          * Iterate through the table fields
@@ -150,7 +149,9 @@ export class FieldValidator {
             this.validateFieldName(field.name);
 
             if (field.options.length < 1) {
-                throw new Error(`The field '${field.name}' has no options`);
+                throw new Error(
+                    i18next.t('no-field-options', { name: field.name }),
+                );
             }
             /**
              * Determine field's options
@@ -162,8 +163,9 @@ export class FieldValidator {
 
                 if (Number.isNaN(maxSize)) {
                     throw new Error(
-                        `The max size parameter for the field ` +
-                            `'${field.name}' is specified incorrectly`,
+                        i18next.t('wrong-max-size-parameter', {
+                            name: field.name,
+                        }),
                     );
                 }
                 finalOptions.push({
@@ -174,7 +176,7 @@ export class FieldValidator {
                 dataType = dataType.slice(0, from);
             }
             if (!validators.dataTypes.hasOwnProperty(dataType)) {
-                throw new Error(`The data type '${dataType}' is incorrect`);
+                throw new Error(i18next.t('wrong-data-type', { dataType }));
             }
             this.validateInitialOptions({
                 dataType,
@@ -213,7 +215,9 @@ export class FieldValidator {
                 nextOption = 'autoIncrement';
             }
             if (!validators.fieldOptions.hasOwnProperty(nextOption)) {
-                throw new Error(`The option '${nextOption}' is incorrect`);
+                throw new Error(
+                    i18next.t('wrong-option', { name: nextOption }),
+                );
             }
             validators.fieldOptions[
                 nextOption as 'autoIncrement' | 'not' | 'default'
@@ -229,16 +233,18 @@ export class FieldValidator {
 
         if (!validator.characters.test(fieldName)) {
             throw new Error(
-                `The name of the field '${fieldName}' is incorrect`,
+                i18next.t('incorrect-field-name', { name: fieldName }),
             );
         }
         if (validator.size.min > fieldName.length) {
             throw new Error(
-                `The name of the field '${fieldName}' is too short`,
+                i18next.t('field-name-too-short', { name: fieldName }),
             );
         }
         if (validator.size.max < fieldName.length) {
-            throw new Error(`The name of the field '${fieldName}' is too long`);
+            throw new Error(
+                i18next.t('field-name-too-long', { name: fieldName }),
+            );
         }
     }
 }

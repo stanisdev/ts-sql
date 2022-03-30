@@ -3,6 +3,7 @@ import { CreateCommand } from './commands/create';
 import { InsertCommand } from './commands/insert';
 import { PrimaryCommand } from './common/enums';
 import { QueryParams } from './common/types';
+import * as i18next from 'i18next';
 
 export class QueryParser extends General {
     private commmands = {
@@ -28,7 +29,7 @@ export class QueryParser extends General {
         });
         const command: PrimaryCommand = (<any>PrimaryCommand)[phrase];
         if (typeof command != 'string') {
-            throw new Error(`The command '${phrase}' is not available`);
+            throw new Error(i18next.t('wrong-command', { phrase }));
         }
         const CommandClass = this.commmands[command];
         this.commandClassInstance = new CommandClass(this.query);
