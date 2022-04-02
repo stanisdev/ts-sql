@@ -19,5 +19,8 @@
     "wrong-option": "The option '{{name}}' is incorrect",
     "incorrect-field-name": "The name of the field '{{name}}' is incorrect",
     "field-name-too-short": "The name of the field '{{name}}' is too short",
-    "field-name-too-long": "The name of the field '{{name}}' is too long"
+    "field-name-too-long": "The name of the field '{{name}}' is too long",
+    "no-field-in-table": "The field '{{name}}' is not specified in the table",
+    "field-is-required": "The field '{{name}}' is required",
+    "field-duplicate": "The field '{{name}}' is already set in the query"
 }

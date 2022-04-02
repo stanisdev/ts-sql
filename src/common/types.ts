@@ -64,3 +64,7 @@ export type TableSchema = {
         options: FieldDetailedOption[];
     };
 };
+
+export type InsertRecords = {
+    [key: string]: string[];
+};
