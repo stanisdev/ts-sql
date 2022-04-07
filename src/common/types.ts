@@ -68,3 +68,7 @@ export type TableSchema = {
 export type InsertRecords = {
     [key: string]: string[];
 };
+
+export type PlainHashTable = {
+    [key: string]: string;
+};

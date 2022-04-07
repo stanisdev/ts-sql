@@ -18,13 +18,12 @@ export class General {
         if (spaceIndex < 0) {
             return '';
         }
-        let phrase = initialValue.substring(0, spaceIndex);
+        const phrase = initialValue.substring(0, spaceIndex);
         this.query.initialValue = initialValue.substring(spaceIndex + 1);
 
         if (options?.toLowerCase) {
-            phrase = phrase.toLowerCase();
-        }
-        if (options?.capitalize) {
+            return phrase.toLowerCase();
+        } else if (options?.capitalize) {
             return capitalize(phrase);
         }
         return phrase;

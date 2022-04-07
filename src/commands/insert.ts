@@ -1,8 +1,13 @@
 import { General } from '../general';
-import { QueryParams, InsertRecords, TableSchema } from '../common/types';
 import { AnalyzeUnit } from '../common/interfaces';
 import { TableEntity } from '../entities/table';
 import * as i18next from 'i18next';
+import {
+    QueryParams,
+    InsertRecords,
+    TableSchema,
+    PlainHashTable,
+} from '../common/types';
 
 export class InsertCommand extends General implements AnalyzeUnit {
     private table: {
@@ -73,6 +78,10 @@ export class InsertCommand extends General implements AnalyzeUnit {
             .map(field => field.trim());
 
         const records: string[][] = [];
+        /**
+         * Build the initial straightforward representation
+         * of the being inserted records
+         */
         for (const substring of this.initial.values) {
             const record: string[] = substring
                 .split(',')
@@ -86,12 +95,49 @@ export class InsertCommand extends General implements AnalyzeUnit {
             }
             result[field] = records.map(record => record[index]);
         });
-        const defaultFields = Object.entries(this.table.schema) // @todo: complete this
-            .filter(([, attributes]) => {
+        for (const [fieldName, records] of Object.entries(result)) {
+            if (records.some(record => typeof record != 'string' || record.length < 1)) {
+                throw new Error(
+                    i18next.t('no-expecting-values', {
+                        name: fieldName,
+                    }),
+                );
+            }
+        }
+        /**
+         * Transform the being inserted records by filling the
+         * fields that do not present in the query but have
+         * a default value in the table schema
+         */
+        const defaultFieldsArray = Object.entries(this.table.schema).filter(
+            ([, attributes]) => {
                 return attributes.options.find(option => {
                     return option.default;
                 });
-            });
+            },
+        );
+        const defaultFields: PlainHashTable = {};
+        defaultFieldsArray.reduce((previous, current) => {
+            const fieldName = current[0];
+            const { options } = current[1];
+
+            const option = options.find(option => option.default);
+            if (typeof option?.default != 'undefined') {
+                previous[fieldName] = option.default;
+            }
+            return previous;
+        }, defaultFields);
+        const recordsCount = this.initial.values.length;
+
+        for (const [fieldName, defaultValue] of Object.entries(defaultFields)) {
+            if (!result.hasOwnProperty(fieldName)) {
+                const values = [];
+                for (let a = 0; a < recordsCount; a++) {
+                    values.push(defaultValue);
+                }
+                result[fieldName] = values;
+            }
+        }
         return result;
     }
 
@@ -101,13 +147,14 @@ export class InsertCommand extends General implements AnalyzeUnit {
      */
     private validateFields() {
         const { records, schema } = this.table;
-
+        /**
+         * Check the presence of all required fields
+         * in the query based on the table schema
+         */
         for (const [fieldName, attributes] of Object.entries(schema)) {
             const { options } = attributes;
             const isOptionalField =
-                options.find(option => {
-                    return option.autoIncrement || option.default;
-                }) instanceof Object;
+                options.find(option => option.autoIncrement) instanceof Object;
             if (isOptionalField) {
                 continue;
             }
