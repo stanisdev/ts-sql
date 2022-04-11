@@ -17,3 +17,9 @@ export enum TableFieldOption {
     Default = 'default',
     Size = 'size',
 }
+
+export enum DataType {
+    String = 'string',
+    Integer = 'integer',
+    Boolean = 'boolean',
+}

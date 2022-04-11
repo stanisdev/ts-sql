@@ -10,7 +10,7 @@
     "table-already-exist": "The table '{{name}}' is already exist",
     "no-single-quotes-around-default-value": "You should wrap the default value of a string to single quotes",
     "wrong-not-null-option": "You specified the 'NOT NULL' option incorrectly",
-    "crucial-error": "Prevent runtime",
+    "prevent-runtime": "Prevent runtime",
     "wrong-default-value": "The default value '{{value}}' for the '{{dataType}}' data type is incorrect",
     "no-fields": "No any fields to define a table",
     "no-field-options": "The field '{{name}}' has no options",
@@ -23,5 +23,10 @@
     "no-field-in-table": "The field '{{name}}' is not specified in the table",
     "field-is-required": "The field '{{name}}' is required",
     "field-duplicate": "The field '{{name}}' is already set in the query",
-    "no-expecting-values": "There are some records that do not contain expecting values of the field '{{name}}'"
+    "no-expecting-values": "There are some records that do not contain expecting values of the field '{{name}}'",
+    "wrong-value": "The value '{{value}}' is incorrect for the type '{{type}}'",
+    "too-long-string": "The value of the field '{{name}}' is too long",
+    "too-short-string": "The value of the field '{{name}}' is too short",
+    "not-integer": "The value of the field '{{name}}' is not an integer-like representation",
+    "not-boolean": "The value of the field '{{name}} must be 'true' or 'false'"
 }

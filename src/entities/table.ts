@@ -5,7 +5,7 @@ import { InitialField, CompactedField } from '../common/types';
 import { FileSystem } from '../common/fileSystem';
 import { AnalyzeUnit } from '../common/interfaces';
 import { Main } from '../main';
-import { TableCommand, TableFieldOption } from '../common/enums';
+import { TableCommand, TableFieldOption, DataType } from '../common/enums';
 import { QueryParams, Config, FieldDetailedOption } from '../common/types';
 import { TableFieldTransformer } from '../common/transformer';
 import { TableField, TableSchema as TableSchemaType } from '../common/types';
@@ -138,7 +138,7 @@ class TableSchema {
             const fieldName = chunk.slice(0, chunk.indexOf('['));
             chunk = chunk.slice(fieldName.length);
 
-            const dataType = chunk.slice(1, chunk.indexOf(']'));
+            const dataType = chunk.slice(1, chunk.indexOf(']')) as DataType;
             chunk = chunk.slice(dataType.length + 2).slice(1, -1);
             const options = this.parseAndGetOptions(chunk);
 

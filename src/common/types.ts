@@ -1,3 +1,5 @@
+import { DataType } from '../common/enums';
+
 export type FieldDetailedOption = {
     autoIncrement?: boolean;
     notNull?: boolean;
@@ -54,7 +56,7 @@ export type FSReading = {
 
 export type TableField = {
     name: string;
-    dataType: string;
+    dataType: DataType;
     options: FieldDetailedOption[];
 };
 
@@ -71,4 +73,9 @@ export type InsertRecords = {
 
 export type PlainHashTable = {
     [key: string]: string;
+};
+
+export type ValidationResult = {
+    isValid: boolean;
+    message: string;
 };

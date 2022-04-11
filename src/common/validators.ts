@@ -1,14 +1,15 @@
 import * as i18next from 'i18next';
-import { Utils } from './utils';
+import { dataTypeValidators } from '../validators';
+import { DataType } from '../common/enums';
+import { capitalize } from 'lodash';
 import {
     FieldDetailedOption,
-    DefaultValidationResult,
     DataTypeOptionsParams,
     InitialField,
     CompactedField,
 } from './types';
 
-const validators = {
+export const validators = {
     /**
      * Table validators
      */
@@ -20,47 +21,6 @@ const validators = {
                     min: 1,
                     max: 50,
                 },
-            },
-        },
-    },
-    /**
-     * Validators of the data types
-     */
-    dataTypes: {
-        integer: {
-            default(value: string): DefaultValidationResult {
-                return {
-                    value,
-                    isValid: Number.isInteger(+value),
-                };
-            },
-        },
-        string: {
-            default(value: string): DefaultValidationResult | never {
-                if (typeof value != 'string') {
-                    return {
-                        isValid: false,
-                        value,
-                    };
-                }
-                const { symbols, modifiedString } = Utils.getEdgeSymbols(value);
-                if (symbols.first != "'" || symbols.last != "'") {
-                    throw new Error(
-                        i18next.t('no-single-quotes-around-default-value'),
-                    );
-                }
-                return {
-                    value: modifiedString,
-                    isValid: modifiedString.length > 0,
-                };
-            },
-        },
-        boolean: {
-            default(value: string): DefaultValidationResult {
-                return {
-                    value,
-                    isValid: value == 'true' || value == 'false',
-                };
             },
         },
     },
@@ -96,14 +56,13 @@ const validators = {
             const { dataType } = params;
             try {
                 if (typeof value != 'string') {
-                    throw new Error(i18next.t('crucial-error'));
+                    throw new Error(i18next.t('prevent-runtime'));
                 }
-                const result =
-                    validators.dataTypes[
-                        dataType as 'string' | 'integer' | 'boolean'
-                    ].default(value);
-                if (!result.isValid) {
-                    throw new Error(i18next.t('crucial-error'));
+                const ValidatorClass = dataTypeValidators[dataType as DataType];
+                const validatorInstance = new ValidatorClass(value);
+
+                if (!validatorInstance.default().isValid) {
+                    throw new Error(i18next.t('prevent-runtime'));
                 }
             } catch {
                 throw new Error(
@@ -175,7 +134,8 @@ export class FieldValidator {
                 });
                 dataType = dataType.slice(0, from);
             }
-            if (!validators.dataTypes.hasOwnProperty(dataType)) {
+            const checkType: DataType = (<any>DataType)[capitalize(dataType)];
+            if (typeof checkType != 'string') {
                 throw new Error(i18next.t('wrong-data-type', { dataType }));
             }
             this.validateInitialOptions({

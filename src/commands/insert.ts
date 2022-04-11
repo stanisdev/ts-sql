@@ -1,6 +1,8 @@
 import { General } from '../general';
 import { AnalyzeUnit } from '../common/interfaces';
 import { TableEntity } from '../entities/table';
+import { DataType } from '../common/enums';
+import { dataTypeValidators } from '../validators';
 import * as i18next from 'i18next';
 import {
     QueryParams,
@@ -66,6 +68,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
         };
         this.table.records = this.getFieldsAndRecords();
         this.validateFields();
+        this.validateValues();
     }
 
     /**
@@ -96,7 +99,10 @@ export class InsertCommand extends General implements AnalyzeUnit {
             result[field] = records.map(record => record[index]);
         });
         for (const [fieldName, records] of Object.entries(result)) {
-            if (records.some(record => typeof record != 'string' || record.length < 1)) {
+            const hasError = records.some(
+                record => typeof record != 'string' || record.length < 1,
+            );
+            if (hasError) {
                 throw new Error(
                     i18next.t('no-expecting-values', {
                         name: fieldName,
@@ -177,7 +183,22 @@ export class InsertCommand extends General implements AnalyzeUnit {
      * Check whether the given values of the query satisfy
      * the constraints of a table
      */
-    private validateValues() {}
+    private validateValues() {
+        const { records, schema } = this.table;
+
+        for (const [fieldName, values] of Object.entries(records)) {
+            const { dataType, options } = schema[fieldName];
+            const ValidatorClass = dataTypeValidators[dataType as DataType];
+
+            values.forEach(value => {
+                const validatorInstance = new ValidatorClass(value, options);
+                const { isValid, message } = validatorInstance.validate();
+                if (!isValid) {
+                    throw new Error(i18next.t(message, { name: fieldName }));
+                }
+            });
+        }
+    }
 
     /**
      * Execute the parsed command
