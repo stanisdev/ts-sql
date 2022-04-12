@@ -23,3 +23,9 @@ export enum DataType {
     Integer = 'integer',
     Boolean = 'boolean',
 }
+
+export enum QueryFieldOption {
+    AutoIncrement = 'autoIncrement',
+    Not = 'not',
+    Default = 'default',
+}

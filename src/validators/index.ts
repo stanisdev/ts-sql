@@ -1,12 +1,9 @@
 import { StringValidator } from './stringValidator';
 import { IntegerValidator } from './integerValidator';
 import { BooleanValidator } from './booleanValidator';
+import { FieldValidator } from './fieldValidator';
 
-export default {
-    StringValidator,
-    IntegerValidator,
-    BooleanValidator,
-};
+export { StringValidator, IntegerValidator, BooleanValidator, FieldValidator };
 
 export const dataTypeValidators = {
     string: StringValidator,

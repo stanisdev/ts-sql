@@ -1,80 +1,14 @@
 import * as i18next from 'i18next';
-import { dataTypeValidators } from '../validators';
-import { DataType } from '../common/enums';
+import { QueryOptionValidator } from './queryOptionValidator';
+import { DataType, QueryFieldOption } from '../common/enums';
 import { capitalize } from 'lodash';
+import { Utils } from '../common/utils';
 import {
     FieldDetailedOption,
     DataTypeOptionsParams,
     InitialField,
     CompactedField,
-} from './types';
-
-export const validators = {
-    /**
-     * Table validators
-     */
-    table: {
-        field: {
-            name: {
-                characters: /^[a-zA-Z0-9_]{1,}$/,
-                size: {
-                    min: 1,
-                    max: 50,
-                },
-            },
-        },
-    },
-    /**
-     * Field's options validators
-     */
-    fieldOptions: {
-        /**
-         * The options of digit's auto incrementation
-         */
-        ['autoIncrement'](params: DataTypeOptionsParams) {
-            params.finalOptions.push({
-                autoIncrement: true,
-            });
-        },
-        /**
-         * The negation option
-         */
-        not(params: DataTypeOptionsParams) {
-            const nextValue = params.fieldOptions.shift();
-            if (nextValue !== 'null') {
-                throw new Error(i18next.t('wrong-not-null-option'));
-            }
-            params.finalOptions.push({
-                notNull: true,
-            });
-        },
-        /**
-         * The default option
-         */
-        default(params: DataTypeOptionsParams) {
-            const value = params.fieldOptions.shift();
-            const { dataType } = params;
-            try {
-                if (typeof value != 'string') {
-                    throw new Error(i18next.t('prevent-runtime'));
-                }
-                const ValidatorClass = dataTypeValidators[dataType as DataType];
-                const validatorInstance = new ValidatorClass(value);
-
-                if (!validatorInstance.default().isValid) {
-                    throw new Error(i18next.t('prevent-runtime'));
-                }
-            } catch {
-                throw new Error(
-                    i18next.t('wrong-default-value', { value, dataType }),
-                );
-            }
-            params.finalOptions.push({
-                default: value,
-            });
-        },
-    },
-};
+} from '../common/types';
 
 export class FieldValidator {
     private fields: {
@@ -83,6 +17,13 @@ export class FieldValidator {
     } = {
         initial: [],
         compacted: [],
+    };
+    private nameConstraints = {
+        characters: /^[a-zA-Z0-9_]{1,}$/,
+        size: {
+            min: 1,
+            max: 50,
+        },
     };
 
     /**
@@ -169,19 +110,17 @@ export class FieldValidator {
             if (typeof nextOption != 'string') {
                 break;
             }
-            // @todo: fix this: use a method to transform
-            // the 'snake case' to the 'camel case'
-            if (nextOption == 'auto_increment') {
-                nextOption = 'autoIncrement';
-            }
-            if (!validators.fieldOptions.hasOwnProperty(nextOption)) {
+            nextOption = Utils.snakeCaseToCamelCase(nextOption);
+
+            const queryOption: QueryFieldOption = (<any>QueryFieldOption)[
+                Utils.pureCapitalize(nextOption)
+            ];
+            if (typeof queryOption != 'string') {
                 throw new Error(
                     i18next.t('wrong-option', { name: nextOption }),
                 );
             }
-            validators.fieldOptions[
-                nextOption as 'autoIncrement' | 'not' | 'default'
-            ](params);
+            new QueryOptionValidator(queryOption, params).validate();
         }
     }
 
@@ -189,19 +128,17 @@ export class FieldValidator {
      * Check whether the given field's name is correct
      */
     private validateFieldName(fieldName: string): void | never {
-        const validator = validators.table.field.name;
-
-        if (!validator.characters.test(fieldName)) {
+        if (!this.nameConstraints.characters.test(fieldName)) {
             throw new Error(
                 i18next.t('incorrect-field-name', { name: fieldName }),
             );
         }
-        if (validator.size.min > fieldName.length) {
+        if (this.nameConstraints.size.min > fieldName.length) {
             throw new Error(
                 i18next.t('field-name-too-short', { name: fieldName }),
             );
         }
-        if (validator.size.max < fieldName.length) {
+        if (this.nameConstraints.size.max < fieldName.length) {
             throw new Error(
                 i18next.t('field-name-too-long', { name: fieldName }),
             );

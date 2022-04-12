@@ -1,6 +1,6 @@
 import { General } from '../general';
 import { Utils } from '../common/utils';
-import { FieldValidator } from '../common/validators';
+import { FieldValidator } from '../validators';
 import { InitialField, CompactedField } from '../common/types';
 import { FileSystem } from '../common/fileSystem';
 import { AnalyzeUnit } from '../common/interfaces';
@@ -259,9 +259,9 @@ class Parser extends General {
         this.name = TableEntity.getTableName(phrase);
 
         if (await this.doesTableExist()) {
-            throw new Error(
-                i18next.t('table-already-exist', { name: this.name }),
-            );
+            // throw new Error(
+            //     i18next.t('table-already-exist', { name: this.name }),
+            // );
         }
         let data = Utils.getEdgeSymbols(this.query.initialValue);
         if (data.symbols.first !== '(' || data.symbols.last !== ')') {
