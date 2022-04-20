@@ -1,6 +1,18 @@
 import { FieldDetailedOption } from '../common/types';
 
 export const TableFieldTransformer = {
+    // @todo: rewrite the next 3 methods to satisfy the 'DRY' rule
+    primaryKey(option: FieldDetailedOption): FieldDetailedOption {
+        if (option.primaryKey?.toString() == 'true') {
+            return {
+                primaryKey: true,
+            };
+        } else {
+            return {
+                primaryKey: false,
+            };
+        }
+    },
     autoIncrement(option: FieldDetailedOption): FieldDetailedOption {
         if (option.autoIncrement?.toString() == 'true') {
             return {

@@ -1,3 +1,5 @@
+import { join } from 'path';
+import * as i18next from 'i18next';
 import { General } from '../general';
 import { Utils } from '../common/utils';
 import { FieldValidator } from '../validators';
@@ -9,7 +11,6 @@ import { TableCommand, TableFieldOption, DataType } from '../common/enums';
 import { QueryParams, Config, FieldDetailedOption } from '../common/types';
 import { TableFieldTransformer } from '../common/transformer';
 import { TableField, TableSchema as TableSchemaType } from '../common/types';
-import * as i18next from 'i18next';
 
 /**
  * The class is to serve queries related to tables as well as
@@ -240,7 +241,6 @@ class TableSchema {
  * The class to parse the initial query
  */
 class Parser extends General {
-    private name: string;
     private config: Config;
 
     /**
@@ -256,12 +256,13 @@ class Parser extends General {
      */
     private async create(): Promise<void> {
         let phrase = this.retrieveNearestPhrase();
-        this.name = TableEntity.getTableName(phrase);
+        const tableName = TableEntity.getTableName(phrase);
+        this.query.table.name = tableName;
 
         if (await this.doesTableExist()) {
-            // throw new Error(
-            //     i18next.t('table-already-exist', { name: this.name }),
-            // );
+            throw new Error(
+                i18next.t('table-already-exist', { name: tableName }),
+            );
         }
         let data = Utils.getEdgeSymbols(this.query.initialValue);
         if (data.symbols.first !== '(' || data.symbols.last !== ')') {
@@ -280,7 +281,7 @@ class Parser extends General {
 
         for (const line of fs.getLines()) {
             const tableName = line.substring(0, line.indexOf('|'));
-            if (tableName === this.name) {
+            if (tableName === this.query.table.name) {
                 return true;
             }
         }
@@ -322,14 +323,26 @@ class Parser extends General {
         }
         const fieldValidator = new FieldValidator(fields);
         fieldValidator.execute();
-        this.stringifyFields(fieldValidator.getCompactedFields());
+        const compactedFields = fieldValidator.getCompactedFields();
+
+        const isAutoIncSpecified = compactedFields.some(field => {
+            return (
+                field.options.findIndex(option =>
+                    option.hasOwnProperty('autoIncrement'),
+                ) > -1
+            );
+        });
+        if (isAutoIncSpecified) {
+            this.query.table.hasAutoIncrement = true;
+        }
+        this.stringifyFields(compactedFields);
     }
 
     /**
      * Compile the prepared list of fields to a string
      */
     private stringifyFields(fields: CompactedField[]): void {
-        let result = `${this.name}|`;
+        let result = `${this.query.table.name}|`;
         for (const field of fields) {
             result += `${field.name}[${field.type}](`;
 
@@ -372,9 +385,25 @@ class Executor {
      * Execute the 'create' command
      */
     async create(): Promise<void> {
+        /**
+         * Write table info to the 'tables' file
+         */
         const fs = new FileSystem();
         await fs.open(this.config.storage.files.tables);
         await fs.append(this.query.metaData);
         await fs.close();
+
+        if (this.query.table.hasAutoIncrement === true) {
+            const sequence = `${this.query.table.name}:1`;
+
+            const fs = new FileSystem();
+            await fs.open(this.config.storage.files.sequences);
+            fs.append(sequence);
+        }
+        /**
+         * Create a new file
+         */
+        const filePath = join(this.config.dirs.storage, this.query.table.name);
+        fs.createFile(filePath);
     }
 }

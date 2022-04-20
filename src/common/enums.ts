@@ -12,6 +12,7 @@ export enum PrimaryCommand {
 }
 
 export enum TableFieldOption {
+    PrimaryKey = 'primaryKey',
     AutoIncrement = 'autoIncrement',
     NotNull = 'notNull',
     Default = 'default',
@@ -25,6 +26,7 @@ export enum DataType {
 }
 
 export enum QueryFieldOption {
+    Primary = 'primary',
     AutoIncrement = 'autoIncrement',
     Not = 'not',
     Default = 'default',

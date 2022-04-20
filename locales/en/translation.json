@@ -10,6 +10,7 @@
     "table-already-exist": "The table '{{name}}' is already exist",
     "no-single-quotes-around-default-value": "You should wrap the default value of a string to single quotes",
     "wrong-not-null-option": "You specified the 'NOT NULL' option incorrectly",
+    "wrong-primary-key-option": "You specified the 'PRIMARY KEY' option incorrectly",
     "prevent-runtime": "Prevent runtime",
     "wrong-default-value": "The default value '{{value}}' for the '{{dataType}}' data type is incorrect",
     "no-fields": "No any fields to define a table",

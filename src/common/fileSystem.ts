@@ -1,4 +1,4 @@
-import { open, FileHandle } from 'fs/promises';
+import { open, FileHandle, writeFile, access } from 'fs/promises';
 import { join } from 'path';
 import { once } from 'events';
 import { createReadStream } from 'fs';
@@ -57,8 +57,8 @@ export class FileSystem {
     /**
      * Write the data to the opened file
      */
-    async write(data: string, position: number) {
-        this.fileHandle.write(data, position);
+    async write(data: string, position: number): Promise<void> {
+        await this.fileHandle.write(data, position);
     }
 
     /**
@@ -66,7 +66,7 @@ export class FileSystem {
      */
     async append(data: string): Promise<void> {
         const stat = await this.fileHandle.stat();
-        this.fileHandle.write('\n' + data, stat.size);
+        await this.write('\n' + data, stat.size);
     }
 
     /**
@@ -74,5 +74,25 @@ export class FileSystem {
      */
     async close(): Promise<void> {
         await this.fileHandle.close();
+    }
+
+    /**
+     * Create an empty file
+     */
+    async createFile(filePath: string): Promise<void> {
+        await writeFile(filePath, '');
+    }
+
+    /**
+     * Check whether a file with the given
+     * path exists
+     */
+    async doesFileExist(filePath: string): Promise<boolean> {
+        try {
+            await access(filePath);
+        } catch {
+            return false;
+        }
+        return true;
     }
 }

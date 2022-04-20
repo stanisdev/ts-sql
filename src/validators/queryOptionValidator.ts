@@ -17,6 +17,19 @@ export class QueryOptionValidator {
     }
 
     /**
+     * The option to define a primary key
+     */
+    private primary(): void | never {
+        const nextValue = this.params.fieldOptions.shift();
+        if (nextValue !== 'key') {
+            throw new Error(i18next.t('wrong-primary-key-option'));
+        }
+        this.params.finalOptions.push({
+            primaryKey: true,
+        });
+    }
+
+    /**
      * The option of digit's auto incrementation
      */
     private autoIncrement(): void {

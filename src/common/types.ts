@@ -1,6 +1,7 @@
 import { DataType } from '../common/enums';
 
 export type FieldDetailedOption = {
+    primaryKey?: boolean;
     autoIncrement?: boolean;
     notNull?: boolean;
     default?: string;
@@ -35,6 +36,10 @@ export type CompactedField = {
 export type QueryParams = {
     initialValue: string;
     metaData: string;
+    table: {
+        name: string;
+        hasAutoIncrement?: boolean;
+    };
 };
 
 export type Config = {

@@ -4,3 +4,5 @@ storage:
   files:
     tables:
       tables
+    sequences:
+      sequences

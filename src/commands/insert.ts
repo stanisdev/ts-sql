@@ -3,6 +3,7 @@ import { AnalyzeUnit } from '../common/interfaces';
 import { TableEntity } from '../entities/table';
 import { DataType } from '../common/enums';
 import { dataTypeValidators } from '../validators';
+import { Sequence } from '../common/sequence';
 import * as i18next from 'i18next';
 import {
     QueryParams,
@@ -66,7 +67,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
             schema: tableSchema,
             records: {},
         };
-        this.table.records = this.getFieldsAndRecords();
+        await this.prepareRecords();
         this.validateFields();
         this.validateValues();
     }
@@ -75,7 +76,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
      * Parse and compact raw string-representation
      * of fields and related records
      */
-    private getFieldsAndRecords(): InsertRecords {
+    private async prepareRecords(): Promise<void> {
         const fields: string[] = this.initial.fields
             .split(',')
             .map(field => field.trim());
@@ -91,7 +92,9 @@ export class InsertCommand extends General implements AnalyzeUnit {
                 .map(value => value.trim());
             records.push(record);
         }
-        const result: InsertRecords = {};
+        const result = this.table.records;
+        await this.definePrimaryKeys(records.length);
+
         fields.forEach((field, index) => {
             if (result.hasOwnProperty(field)) {
                 throw new Error(i18next.t('field-duplicate', { name: field }));
@@ -144,7 +147,30 @@ export class InsertCommand extends General implements AnalyzeUnit {
                 result[fieldName] = values;
             }
         }
-        return result;
+    }
+
+    /**
+     * Describe me
+     */
+    private async definePrimaryKeys(recordsCount: number): Promise<void> {
+        const field = Object.entries(this.table.schema).filter(element => {
+            const [, { options }] = element;
+            return options.some(option => option.hasOwnProperty('primaryKey'));
+        });
+        if (field.length < 1) {
+            return;
+        }
+        const [fieldName, params] = field[0];
+        const isAutoIncrement =
+            params.options.findIndex(option =>
+                option.hasOwnProperty('autoIncrement'),
+            ) > -1;
+
+        if (!isAutoIncrement) {
+            return;
+        }
+        const sequence = new Sequence(this.table.name);
+        this.table.records[fieldName] = await sequence.getValues(recordsCount);
     }
 
     /**
@@ -203,5 +229,7 @@ export class InsertCommand extends General implements AnalyzeUnit {
     /**
      * Execute the parsed command
      */
-    async execute(): Promise<void> {}
+    async execute(): Promise<void> {
+        // console.log(this.table.records);
+    }
 }

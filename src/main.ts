@@ -1,6 +1,7 @@
 import { parse as yamlParse } from 'yaml';
 import { join, dirname } from 'path';
 import { readFileSync } from 'fs';
+import { FileSystem } from './common/fileSystem';
 import { QueryParser } from './queryParser';
 import { Config } from './common/types';
 import * as i18next from 'i18next';
@@ -34,9 +35,14 @@ export class Main {
      */
     async runApp(query: string): Promise<void> {
         // @todo: add an error handler
+        await this.initializeSystemFiles();
+
         const qp = new QueryParser({
             initialValue: query,
             metaData: '',
+            table: {
+                name: '',
+            },
         });
         await qp.analyze();
         await qp.execute();
@@ -88,5 +94,25 @@ export class Main {
                 },
             },
         });
+    }
+
+    /**
+     * Check whether the system files already
+     * exist and if not - create them
+     */
+    private async initializeSystemFiles(): Promise<void> {
+        const { config } = this;
+        const fs = new FileSystem();
+
+        const files = ['tables', 'sequences'];
+        for (const fileName of files) {
+            const filePath = join(
+                config.dirs.storage,
+                config.storage.files[fileName],
+            );
+            if (!(await fs.doesFileExist(filePath))) {
+                await fs.createFile(filePath);
+            }
+        }
     }
 }
